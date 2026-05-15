@@ -44,11 +44,11 @@ export default function ChatScreen() {
   async function handleSend() {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
-    setText('');
     setSending(true);
     const res = await api.sendMessage(trimmed, matchId ?? '');
     setSending(false);
     if (res.success && res.data) {
+      setText('');
       setMessages((prev) => [...prev, res.data!.message]);
       setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
     }
@@ -94,7 +94,7 @@ export default function ChatScreen() {
         keyExtractor={(item) => item._id}
         contentContainerStyle={styles.messagesList}
         showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
+        onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         ListEmptyComponent={
           <View style={styles.emptyChat}>
             <View style={styles.emptyChatIcon}>
@@ -116,7 +116,7 @@ export default function ChatScreen() {
               {!isMe && (
                 <View style={styles.msgAvatar}>
                   <Text style={styles.msgAvatarText}>
-                    {item.senderId.name[0].toUpperCase()}
+                    {(item.senderId.name?.[0] ?? '?').toUpperCase()}
                   </Text>
                 </View>
               )}
@@ -228,8 +228,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   input: {
-    flex: 1, backgroundColor: Colors.background,
-    borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.border,
+    flex: 1, backgroundColor: '#FFFFFF',
+    borderRadius: Radius.full, borderWidth: 2, borderColor: '#BDBDBD',
     paddingHorizontal: 16, paddingVertical: 10,
     fontSize: FontSize.md, color: Colors.textPrimary,
     maxHeight: 100,
