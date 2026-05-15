@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ActivityIndicator, FlatList, RefreshControl, StatusBar,
+  ActivityIndicator, FlatList, RefreshControl, StatusBar, Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -76,7 +76,10 @@ export default function MatchesScreen() {
       <StatusBar barStyle="light-content" />
 
       <View style={styles.header}>
-        <View>
+        <View style={styles.logoWrap}>
+          <Image source={require('../../assets/images/logo.png')} style={styles.logoImg} resizeMode="cover" />
+        </View>
+        <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>My Matches</Text>
           <Text style={styles.headerSub}>
             {matches.length > 0
@@ -84,6 +87,7 @@ export default function MatchesScreen() {
               : 'No active matches yet'}
           </Text>
         </View>
+        <View style={{ width: 40 }} />
       </View>
 
       <FlatList
@@ -247,11 +251,18 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 56, paddingBottom: 20, paddingHorizontal: Spacing.lg,
     backgroundColor: Colors.primary,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
   },
+  logoWrap: {
+    width: 40, height: 40, borderRadius: 10,
+    backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+  },
+  logoImg: { width: 38, height: 38, borderRadius: 8 },
+  headerCenter: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: '#fff' },
   headerSub: { fontSize: FontSize.xs, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
 
-  list: { padding: Spacing.lg, gap: 14, paddingBottom: 40 },
+  list: { padding: Spacing.lg, gap: 14, paddingBottom: 100 },
 
   card: {
     backgroundColor: Colors.surface, borderRadius: Radius.xl,

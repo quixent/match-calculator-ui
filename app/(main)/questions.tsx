@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet,
-  ActivityIndicator, Alert, ScrollView, StatusBar,
+  ActivityIndicator, Alert, ScrollView, StatusBar, Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { api } from '../../api/client';
@@ -126,9 +126,14 @@ export default function QuestionsScreen() {
         <StatusBar barStyle="light-content" />
 
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.replace('/(main)/home')} style={styles.backBtn}>
-            <Text style={styles.backText}>‹ Home</Text>
-          </TouchableOpacity>
+          <View style={styles.backSection}>
+            <View style={styles.logoWrap}>
+              <Image source={require('../../assets/images/logo.png')} style={styles.logoImg} resizeMode="cover" />
+            </View>
+            <TouchableOpacity onPress={() => router.replace('/(main)/home')} style={styles.backBtn}>
+              <Text style={styles.backText}>‹ Home</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.headerCenter}>
             <Text style={styles.headerTitle}>Compatibility Quiz</Text>
             <Text style={styles.headerSub}>Your responses are saved</Text>
@@ -271,9 +276,14 @@ export default function QuestionsScreen() {
       <StatusBar barStyle="light-content" />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backText}>‹ Back</Text>
-        </TouchableOpacity>
+        <View style={styles.backSection}>
+          <View style={styles.logoWrap}>
+            <Image source={require('../../assets/images/logo.png')} style={styles.logoImg} resizeMode="cover" />
+          </View>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Text style={styles.backText}>‹ Back</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Compatibility Quiz</Text>
           <Text style={styles.headerSub}>{answeredCount} of {questions.length} answered</Text>
@@ -364,8 +374,14 @@ const styles = StyleSheet.create({
     paddingTop: 52, paddingBottom: 16, paddingHorizontal: Spacing.md,
     backgroundColor: Colors.primary,
   },
-  backBtn: { paddingVertical: 4, width: 60 },
-  backText: { color: 'rgba(255,255,255,0.9)', fontSize: FontSize.md, fontWeight: FontWeight.semibold },
+  backSection: { alignItems: 'flex-start', gap: 4 },
+  logoWrap: {
+    width: 40, height: 40, borderRadius: 10,
+    backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+  },
+  logoImg: { width: 38, height: 38, borderRadius: 8 },
+  backBtn: { paddingVertical: 2 },
+  backText: { color: 'rgba(255,255,255,0.9)', fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: '#fff' },
   headerSub: { fontSize: FontSize.xs, color: 'rgba(255,255,255,0.75)', marginTop: 2 },

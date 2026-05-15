@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ActivityIndicator, StatusBar, ScrollView, Platform,
+  ActivityIndicator, StatusBar, ScrollView, Platform, Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -132,8 +132,14 @@ export default function ConnectScreen() {
       <StatusBar barStyle="light-content" />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Connect</Text>
-        <Text style={styles.headerSub}>Link up with your partner</Text>
+        <View style={styles.logoWrap}>
+          <Image source={require('../../assets/images/logo.png')} style={styles.logoImg} resizeMode="cover" />
+        </View>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Connect</Text>
+          <Text style={styles.headerSub}>Link up with your partner</Text>
+        </View>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
@@ -253,11 +259,18 @@ const styles = StyleSheet.create({
   header: {
     paddingTop: 52, paddingBottom: 20, paddingHorizontal: Spacing.lg,
     backgroundColor: Colors.primary,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
   },
+  logoWrap: {
+    width: 40, height: 40, borderRadius: 10,
+    backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+  },
+  logoImg: { width: 38, height: 38, borderRadius: 8 },
+  headerCenter: { flex: 1, alignItems: 'center' },
   headerTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: '#fff' },
   headerSub: { fontSize: FontSize.xs, color: 'rgba(255,255,255,0.75)', marginTop: 2 },
 
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
+  scroll: { padding: Spacing.lg, paddingBottom: 100 },
 
   connectedCard: {
     backgroundColor: Colors.surface, borderRadius: Radius.xl,

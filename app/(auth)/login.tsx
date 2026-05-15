@@ -33,7 +33,7 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
       <ScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
@@ -46,8 +46,8 @@ export default function LoginScreen() {
             style={styles.logo}
             resizeMode="cover"
           />
-          <Text style={styles.heroTitle}>Find Your{'\n'}Perfect Match</Text>
-          <Text style={styles.heroSub}>Connect with compatible partners near you</Text>
+          <Text style={styles.heroTitle}>Understand Each{'\n'}Other Better</Text>
+          <Text style={styles.heroSub}>A private space for two people to discover their compatibility</Text>
         </View>
 
         {/* Form card */}
@@ -94,7 +94,7 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.primary },
+  container: { flex: 1, backgroundColor: '#fff' },
 
   scroll: {
     flexGrow: 1,
@@ -113,29 +113,26 @@ const styles = StyleSheet.create({
     height: 104,
     borderRadius: 20,
     marginBottom: Spacing.lg,
-    borderWidth: 3,
-    borderColor: 'rgba(255,255,255,0.35)',
   },
   heroTitle: {
     fontSize: FontSize.xxxl,
     fontWeight: FontWeight.extrabold,
-    color: '#fff',
+    color: Colors.primary,
     textAlign: 'center',
     lineHeight: 42,
     marginBottom: Spacing.sm,
   },
   heroSub: {
     fontSize: FontSize.md,
-    color: 'rgba(255,255,255,0.8)',
+    color: Colors.textSecondary,
     textAlign: 'center',
   },
 
   card: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceAlt,
     borderRadius: 24,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.xl,
-    ...Shadow.md,
   },
   formTitle: {
     fontSize: FontSize.xxl,

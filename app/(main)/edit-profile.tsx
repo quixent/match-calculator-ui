@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar, ActivityIndicator,
+  Alert, Modal, KeyboardAvoidingView, Platform, ScrollView, StatusBar, ActivityIndicator, Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { api } from '../../api/client';
 import { useAuth } from '../../context/auth';
+import { deleteItem } from '../../utils/storage';
 import { Gender, User } from '../../types';
 import { Colors, Spacing, Radius, FontSize, FontWeight, Shadow } from '../../constants/theme';
 
@@ -35,6 +36,8 @@ export default function EditProfileScreen() {
   const [bioFocused, setBioFocused] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const router = useRouter();
   const { setToken, setUser: clearAuthUser } = useAuth();
 
@@ -70,6 +73,14 @@ export default function EditProfileScreen() {
     }
   }
 
+  async function handleLogout() {
+    setLoggingOut(true);
+    await deleteItem('token');
+    setToken(null);
+    clearAuthUser(null);
+    router.replace('/(auth)/login');
+  }
+
   if (loading) {
     return (
       <View style={styles.loaderWrap}>
@@ -90,7 +101,11 @@ export default function EditProfileScreen() {
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>My Profile</Text>
+          <View style={styles.logoWrap}>
+            <Image source={require('../../assets/images/logo.png')} style={styles.logoImg} resizeMode="cover" />
+          </View>
+          <Text style={[styles.headerTitle, { flex: 1, textAlign: 'center' }]}>My Profile</Text>
+          <View style={{ width: 40 }} />
         </View>
 
         {/* Avatar section */}
@@ -204,25 +219,53 @@ export default function EditProfileScreen() {
             }
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={() => {
-            Alert.alert('Logout', 'Are you sure?', [
-              { text: 'Cancel', style: 'cancel' },
-              {
-                text: 'Logout', style: 'destructive',
-                onPress: async () => {
-                  const { deleteItem } = await import('../../utils/storage');
-                  await deleteItem('token');
-                  setToken(null);
-                  clearAuthUser(null);
-                  router.replace('/(auth)/login');
-                },
-              },
-            ]);
-          }}>
+          <TouchableOpacity
+            style={styles.logoutBtn}
+            onPress={() => setShowLogoutModal(true)}
+            activeOpacity={0.85}
+          >
             <Text style={styles.logoutBtnText}>Logout</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Logout confirmation modal */}
+      <Modal
+        visible={showLogoutModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowLogoutModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalIconWrap}>
+              <Text style={styles.modalIcon}>⚠</Text>
+            </View>
+            <Text style={styles.modalTitle}>Logout</Text>
+            <Text style={styles.modalMsg}>Are you sure you want to logout from Ansora?</Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancelBtn}
+                onPress={() => setShowLogoutModal(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalLogoutBtn, loggingOut && { opacity: 0.6 }]}
+                onPress={handleLogout}
+                disabled={loggingOut}
+                activeOpacity={0.85}
+              >
+                {loggingOut
+                  ? <ActivityIndicator size="small" color="#fff" />
+                  : <Text style={styles.modalLogoutText}>Logout</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </KeyboardAvoidingView>
   );
 }
@@ -230,12 +273,18 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   loaderWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  scroll: { flexGrow: 1, paddingBottom: 40 },
+  scroll: { flexGrow: 1, paddingBottom: 100 },
 
   header: {
     paddingTop: 52, paddingBottom: 14, paddingHorizontal: Spacing.lg,
     backgroundColor: Colors.primary,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
   },
+  logoWrap: {
+    width: 40, height: 40, borderRadius: 10,
+    backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+  },
+  logoImg: { width: 38, height: 38, borderRadius: 8 },
   headerTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: '#fff' },
 
   avatarSection: {
@@ -325,4 +374,41 @@ const styles = StyleSheet.create({
     paddingVertical: 14, alignItems: 'center', marginTop: Spacing.md,
   },
   logoutBtnText: { color: Colors.error, fontSize: FontSize.md, fontWeight: FontWeight.semibold },
+
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center', alignItems: 'center',
+    paddingHorizontal: Spacing.xl,
+  },
+  modalBox: {
+    backgroundColor: Colors.surface, borderRadius: Radius.xl,
+    padding: Spacing.xl, width: '100%', alignItems: 'center',
+    ...Shadow.lg,
+  },
+  modalIconWrap: {
+    width: 60, height: 60, borderRadius: 30,
+    backgroundColor: Colors.errorLight,
+    justifyContent: 'center', alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  modalIcon: { fontSize: 28 },
+  modalTitle: {
+    fontSize: FontSize.xl, fontWeight: FontWeight.bold,
+    color: Colors.textPrimary, marginBottom: Spacing.sm,
+  },
+  modalMsg: {
+    fontSize: FontSize.md, color: Colors.textSecondary,
+    textAlign: 'center', lineHeight: 22, marginBottom: Spacing.xl,
+  },
+  modalActions: { flexDirection: 'row', gap: 12, width: '100%' },
+  modalCancelBtn: {
+    flex: 1, borderWidth: 1.5, borderColor: Colors.border,
+    borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center',
+  },
+  modalCancelText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
+  modalLogoutBtn: {
+    flex: 1, backgroundColor: Colors.error,
+    borderRadius: Radius.md, paddingVertical: 14, alignItems: 'center',
+  },
+  modalLogoutText: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: '#fff' },
 });

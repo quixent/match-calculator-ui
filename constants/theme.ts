@@ -1,15 +1,15 @@
 export const Colors = {
-  primary: '#D63384',
-  primaryDark: '#A8255E',
-  primaryLight: '#FDF0F6',
-  primaryMid: '#F3AACE',
+  primary: '#C8102E',
+  primaryDark: '#9B0C23',
+  primaryLight: '#FFF0F2',
+  primaryMid: '#F5B0BC',
 
-  secondary: '#7C3AED',
-  secondaryLight: '#EDE9FE',
+  secondary: '#8B1A1A',
+  secondaryLight: '#FDEAEA',
 
   background: '#F7F8FA',
   surface: '#FFFFFF',
-  surfaceAlt: '#F0F2F5',
+  surfaceAlt: '#F5F1F1',
 
   textPrimary: '#111827',
   textSecondary: '#4B5563',
@@ -17,7 +17,7 @@ export const Colors = {
   textInverse: '#FFFFFF',
 
   border: '#E5E7EB',
-  borderFocus: '#D63384',
+  borderFocus: '#C8102E',
 
   success: '#10B981',
   successLight: '#D1FAE5',
@@ -26,8 +26,8 @@ export const Colors = {
   warning: '#F59E0B',
   warningLight: '#FEF3C7',
 
-  gradientStart: '#D63384',
-  gradientEnd: '#7C3AED',
+  gradientStart: '#C8102E',
+  gradientEnd: '#8B1A1A',
 
   shadow: 'rgba(0,0,0,0.08)',
   overlay: 'rgba(0,0,0,0.4)',
@@ -85,7 +85,7 @@ export const Shadow = {
     elevation: 4,
   },
   lg: {
-    shadowColor: '#D63384',
+    shadowColor: '#C8102E',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.25,
     shadowRadius: 16,

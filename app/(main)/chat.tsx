@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  FlatList, KeyboardAvoidingView, Platform, StatusBar, ActivityIndicator,
+  FlatList, KeyboardAvoidingView, Platform, StatusBar, ActivityIndicator, Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { api } from '../../api/client';
@@ -72,9 +72,14 @@ export default function ChatScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={styles.backText}>‹ Back</Text>
-        </TouchableOpacity>
+        <View style={styles.backSection}>
+          <View style={styles.logoWrap}>
+            <Image source={require('../../assets/images/logo.png')} style={styles.logoImg} resizeMode="cover" />
+          </View>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Text style={styles.backText}>‹ Back</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{partnerName}</Text>
           <View style={styles.onlineDot} />
@@ -164,8 +169,14 @@ const styles = StyleSheet.create({
     paddingTop: 52, paddingBottom: 14, paddingHorizontal: Spacing.lg,
     backgroundColor: Colors.primary,
   },
-  backBtn: { width: 60, paddingVertical: 4 },
-  backText: { color: 'rgba(255,255,255,0.9)', fontSize: FontSize.md, fontWeight: FontWeight.semibold },
+  backSection: { alignItems: 'flex-start', gap: 4 },
+  logoWrap: {
+    width: 40, height: 40, borderRadius: 10,
+    backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+  },
+  logoImg: { width: 38, height: 38, borderRadius: 8 },
+  backBtn: { paddingVertical: 2 },
+  backText: { color: 'rgba(255,255,255,0.9)', fontSize: FontSize.sm, fontWeight: FontWeight.semibold },
   headerCenter: { flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8 },
   headerTitle: { fontSize: FontSize.lg, fontWeight: FontWeight.bold, color: '#fff' },
   onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: Colors.success },

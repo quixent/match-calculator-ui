@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ActivityIndicator,
-  ScrollView, TouchableOpacity, StatusBar,
+  ScrollView, TouchableOpacity, StatusBar, Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { api } from '../../api/client';
@@ -17,7 +17,7 @@ interface ScoreConfig {
 
 function getScoreConfig(score: number): ScoreConfig {
   if (score >= 85) return { label: 'Highly Compatible', color: Colors.primary, bgColor: Colors.primaryLight, desc: 'Exceptional alignment across values and lifestyle.' };
-  if (score >= 70) return { label: 'Strong Match', color: '#E91E8C', bgColor: '#FCE4EC', desc: 'Strong compatibility with well-matched values.' };
+  if (score >= 70) return { label: 'Strong Match', color: '#C8102E', bgColor: '#FFF0F2', desc: 'Strong compatibility with well-matched values.' };
   if (score >= 55) return { label: 'Good Potential', color: Colors.warning, bgColor: Colors.warningLight, desc: 'Solid foundation with room to grow together.' };
   if (score >= 40) return { label: 'Some Common Ground', color: '#6B7280', bgColor: '#F3F4F6', desc: 'A few shared values worth exploring further.' };
   return { label: 'Different Outlooks', color: '#374151', bgColor: '#F9FAFB', desc: 'Significant differences in values and lifestyle.' };
@@ -72,9 +72,14 @@ export default function ScoreScreen() {
 
       {/* Score Hero */}
       <View style={[styles.hero, { backgroundColor: config.bgColor }]}>
-        <TouchableOpacity onPress={() => router.replace('/(main)/home')} style={styles.backBtn}>
-          <Text style={[styles.backText, { color: config.color }]}>‹ Home</Text>
-        </TouchableOpacity>
+        <View style={styles.backRow}>
+          <View style={styles.logoWrap}>
+            <Image source={require('../../assets/images/logo.png')} style={styles.logoImg} resizeMode="cover" />
+          </View>
+          <TouchableOpacity onPress={() => router.replace('/(main)/home')} style={styles.backBtn}>
+            <Text style={[styles.backText, { color: config.color }]}>‹ Home</Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={[styles.scoreRing, { borderColor: config.color }]}>
           <Text style={[styles.scoreNumber, { color: config.color }]}>{score.compatibility}%</Text>
@@ -177,7 +182,16 @@ const styles = StyleSheet.create({
   errorBtnText: { color: '#fff', fontWeight: FontWeight.bold, fontSize: FontSize.md },
 
   hero: { paddingTop: 52, paddingBottom: 32, paddingHorizontal: Spacing.xl, alignItems: 'center' },
-  backBtn: { alignSelf: 'flex-start', marginBottom: Spacing.lg },
+  backRow: {
+    alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center',
+    gap: 10, marginBottom: Spacing.lg,
+  },
+  logoWrap: {
+    width: 40, height: 40, borderRadius: 10,
+    backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', overflow: 'hidden',
+  },
+  logoImg: { width: 38, height: 38, borderRadius: 8 },
+  backBtn: {},
   backText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold },
   scoreRing: {
     width: 150, height: 150, borderRadius: 75, borderWidth: 6,

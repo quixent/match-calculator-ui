@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import {
-  View, Text, TextInput, TouchableOpacity, StyleSheet,
-  Alert, KeyboardAvoidingView, Platform, StatusBar,
+  View, Text, TextInput, TouchableOpacity, Image, StyleSheet,
+  Alert, KeyboardAvoidingView, Platform, StatusBar, ScrollView,
   NativeSyntheticEvent, TextInputKeyPressEventData,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -44,7 +44,6 @@ export default function OtpScreen() {
   function handleChange(value: string, index: number) {
     const cleaned = value.replace(/[^0-9]/g, '');
 
-    // Paste: received multiple digits at once
     if (cleaned.length > 1) {
       const filled = cleaned.slice(0, OTP_LENGTH).split('');
       const next = Array(OTP_LENGTH).fill('');
@@ -74,105 +73,150 @@ export default function OtpScreen() {
     }
   }
 
-  function handleVerify() { verify(otp); }
-
   async function handleResend() {
-    await api.sendOtp(mobile);
-    setOtp(Array(OTP_LENGTH).fill(''));
-    inputs.current[0]?.focus();
-    Alert.alert('OTP Resent', 'Check your server console for the new OTP.');
+    const res = await api.sendOtp(mobile);
+    if (res.success) {
+      setOtp(Array(OTP_LENGTH).fill(''));
+      inputs.current[0]?.focus();
+      Alert.alert('OTP Resent', 'Check your server console for the new OTP.');
+    } else {
+      Alert.alert('Error', res.message ?? 'Failed to resend OTP.');
+    }
   }
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <StatusBar barStyle="dark-content" />
-
-      <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-        <Text style={styles.backText}>← Back</Text>
-      </TouchableOpacity>
-
-      <View style={styles.content}>
-        <View style={styles.iconWrap}>
-          <Text style={styles.iconText}>OTP</Text>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Logo + branding — same as login */}
+        <View style={styles.brand}>
+          <Image
+            source={require('../../assets/images/logo.png')}
+            style={styles.logo}
+            resizeMode="cover"
+          />
+          <Text style={styles.heroTitle}>Understand Each{'\n'}Other Better</Text>
+          <Text style={styles.heroSub}>A private space for two people to discover their compatibility</Text>
         </View>
 
-        <Text style={styles.title}>Verify Your Number</Text>
-        <Text style={styles.subtitle}>
-          We sent a 6-digit code to{'\n'}
-          <Text style={styles.mobileText}>+91 {mobile}</Text>
-        </Text>
+        {/* OTP card */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Verify Your Number</Text>
+          <Text style={styles.cardSub}>
+            We sent a 6-digit code to{' '}
+            <Text style={styles.mobileText}>+91 {mobile}</Text>
+          </Text>
 
-        <View style={styles.otpRow}>
-          {otp.map((digit, i) => (
-            <TextInput
-              key={i}
-              ref={(ref) => { inputs.current[i] = ref; }}
-              style={[styles.otpBox, digit ? styles.otpBoxFilled : null]}
-              value={digit}
-              onChangeText={(v) => handleChange(v, i)}
-              onKeyPress={(e) => handleKeyPress(e, i)}
-              keyboardType="number-pad"
-              maxLength={i === 0 ? OTP_LENGTH : 1}
-              selectTextOnFocus
-              textAlign="center"
-            />
-          ))}
-        </View>
+          <View style={styles.otpRow}>
+            {otp.map((digit, i) => (
+              <TextInput
+                key={i}
+                ref={(ref) => { inputs.current[i] = ref; }}
+                style={[styles.otpBox, digit ? styles.otpBoxFilled : null]}
+                value={digit}
+                onChangeText={(v) => handleChange(v, i)}
+                onKeyPress={(e) => handleKeyPress(e, i)}
+                keyboardType="number-pad"
+                maxLength={i === 0 ? OTP_LENGTH : 1}
+                selectTextOnFocus
+                textAlign="center"
+              />
+            ))}
+          </View>
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleVerify}
-          disabled={loading}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.buttonText}>{loading ? 'Verifying…' : 'Verify OTP'}</Text>
-        </TouchableOpacity>
-
-        <View style={styles.resendRow}>
-          <Text style={styles.resendLabel}>Didn't receive the code? </Text>
-          <TouchableOpacity onPress={handleResend}>
-            <Text style={styles.resendBtn}>Resend</Text>
+          <TouchableOpacity
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={() => verify(otp)}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.buttonText}>{loading ? 'Verifying…' : 'Verify OTP'}</Text>
           </TouchableOpacity>
+
+          <View style={styles.resendRow}>
+            <Text style={styles.resendLabel}>Didn't receive the code? </Text>
+            <TouchableOpacity onPress={handleResend}>
+              <Text style={styles.resendBtn}>Resend</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  backBtn: { paddingTop: 56, paddingHorizontal: Spacing.xl, paddingBottom: Spacing.md },
-  backText: { color: Colors.primary, fontSize: FontSize.md, fontWeight: FontWeight.semibold },
+  container: { flex: 1, backgroundColor: '#fff' },
 
-  content: {
-    flex: 1, paddingHorizontal: Spacing.xl,
-    alignItems: 'center', justifyContent: 'center', paddingBottom: Spacing.xxl,
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingTop: Platform.OS === 'ios' ? 40 : 28,
+    paddingBottom: 32,
+    paddingHorizontal: Spacing.xl,
   },
 
-  iconWrap: {
-    width: 80, height: 80, borderRadius: 40,
-    backgroundColor: Colors.primaryLight,
-    justifyContent: 'center', alignItems: 'center',
+  brand: {
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+  },
+  logo: {
+    width: 104,
+    height: 104,
+    borderRadius: 20,
     marginBottom: Spacing.lg,
   },
-  iconText: { fontSize: FontSize.xs, fontWeight: FontWeight.bold, color: Colors.primary, letterSpacing: 1 },
-
-  title: {
-    fontSize: FontSize.xxl, fontWeight: FontWeight.bold,
-    color: Colors.textPrimary, marginBottom: Spacing.sm, textAlign: 'center',
+  heroTitle: {
+    fontSize: FontSize.xxxl,
+    fontWeight: FontWeight.extrabold,
+    color: Colors.primary,
+    textAlign: 'center',
+    lineHeight: 42,
+    marginBottom: Spacing.sm,
   },
-  subtitle: {
-    fontSize: FontSize.md, color: Colors.textSecondary,
-    textAlign: 'center', lineHeight: 24, marginBottom: Spacing.xl,
+  heroSub: {
+    fontSize: FontSize.md,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+
+  card: {
+    backgroundColor: Colors.surfaceAlt,
+    borderRadius: 24,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.xl,
+  },
+  cardTitle: {
+    fontSize: FontSize.xxl,
+    fontWeight: FontWeight.bold,
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+    textAlign: 'center',
+  },
+  cardSub: {
+    fontSize: FontSize.sm,
+    color: Colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: Spacing.lg,
   },
   mobileText: { color: Colors.primary, fontWeight: FontWeight.bold },
 
-  otpRow: { flexDirection: 'row', gap: 10, marginBottom: Spacing.xl },
+  otpRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: Platform.OS === 'ios' ? 10 : 8,
+    marginBottom: Spacing.xl,
+  },
   otpBox: {
-    width: 48, height: 56, borderRadius: Radius.md,
+    width: 46, height: 56, borderRadius: Radius.md,
     borderWidth: 1.5, borderColor: Colors.border,
     backgroundColor: Colors.surface,
     fontSize: FontSize.xxl, fontWeight: FontWeight.bold,
@@ -181,14 +225,17 @@ const styles = StyleSheet.create({
   otpBoxFilled: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
 
   button: {
-    width: '100%', backgroundColor: Colors.primary,
-    borderRadius: Radius.md, paddingVertical: 16,
-    alignItems: 'center', ...Shadow.lg,
+    backgroundColor: Colors.primary,
+    borderRadius: Radius.md,
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: Spacing.lg,
+    ...Shadow.lg,
   },
   buttonDisabled: { opacity: 0.6 },
   buttonText: { color: '#fff', fontSize: FontSize.lg, fontWeight: FontWeight.bold },
 
-  resendRow: { flexDirection: 'row', alignItems: 'center', marginTop: Spacing.lg },
+  resendRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   resendLabel: { fontSize: FontSize.sm, color: Colors.textMuted },
   resendBtn: { fontSize: FontSize.sm, color: Colors.primary, fontWeight: FontWeight.bold },
 });

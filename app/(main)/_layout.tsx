@@ -19,14 +19,12 @@ export default function MainLayout() {
           backgroundColor: Colors.surface,
           borderTopColor: Colors.border,
           borderTopWidth: 1,
-          paddingBottom: 12,
-          paddingTop: 8,
-          height: 72,
+          paddingBottom: 10,
+          paddingTop: 6,
         },
         tabBarLabelStyle: {
           fontSize: FontSize.xs,
           fontWeight: FontWeight.semibold as '600',
-          marginTop: 2,
         },
       }}
     >
@@ -52,11 +50,9 @@ export default function MainLayout() {
         }}
       />
       {/* Hidden screens — navigated to via router.push */}
-      <Tabs.Screen name="requests"   options={{ href: null }} />
       <Tabs.Screen name="questions"  options={{ href: null }} />
       <Tabs.Screen name="score"      options={{ href: null }} />
       <Tabs.Screen name="chat"       options={{ href: null }} />
-      <Tabs.Screen name="user-detail" options={{ href: null }} />
     </Tabs>
   );
 }
