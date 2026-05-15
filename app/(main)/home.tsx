@@ -337,14 +337,20 @@ const styles = StyleSheet.create({
 
   digitsRow: {
     flexDirection: 'row', justifyContent: 'center',
-    gap: Platform.OS === 'ios' ? 10 : 8, marginBottom: Spacing.md,
+    marginBottom: Spacing.md,
   },
   digitBox: {
-    width: 46, height: 56, borderRadius: Radius.md,
-    borderWidth: 1.5, borderColor: Colors.border,
-    backgroundColor: Colors.surfaceAlt,
+    width: 48, height: 58, borderRadius: Radius.md,
+    borderWidth: 2, borderColor: '#BDBDBD',
+    backgroundColor: '#FFFFFF',
     fontSize: FontSize.xxl, fontWeight: FontWeight.bold,
-    color: Colors.textPrimary, ...Shadow.sm,
+    color: Colors.textPrimary,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    includeFontPadding: false,
+    padding: 0,
+    marginHorizontal: 5,
+    ...Shadow.sm,
   },
   digitBoxFilled: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
 
