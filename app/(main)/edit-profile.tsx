@@ -1,0 +1,328 @@
+import { useState, useEffect } from 'react';
+import {
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
+  Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar, ActivityIndicator,
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { api } from '../../api/client';
+import { useAuth } from '../../context/auth';
+import { Gender, User } from '../../types';
+import { Colors, Spacing, Radius, FontSize, FontWeight, Shadow } from '../../constants/theme';
+
+const AGE_OPTIONS = ['18–22', '23–27', '28–32', '33–37', '38–45', '45+'];
+const AGE_MAP: Record<string, number> = {
+  '18–22': 20, '23–27': 25, '28–32': 30, '33–37': 35, '38–45': 40, '45+': 47,
+};
+
+function ageToRange(age: number): string {
+  if (age <= 22) return '18–22';
+  if (age <= 27) return '23–27';
+  if (age <= 32) return '28–32';
+  if (age <= 37) return '33–37';
+  if (age <= 45) return '38–45';
+  return '45+';
+}
+
+export default function EditProfileScreen() {
+  const [user, setUser] = useState<User | null>(null);
+  const [name, setName] = useState('');
+  const [gender, setGender] = useState<Gender | null>(null);
+  const [ageRange, setAgeRange] = useState<string | null>(null);
+  const [city, setCity] = useState('');
+  const [bio, setBio] = useState('');
+  const [nameFocused, setNameFocused] = useState(false);
+  const [cityFocused, setCityFocused] = useState(false);
+  const [bioFocused, setBioFocused] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const router = useRouter();
+  const { setToken, setUser: clearAuthUser } = useAuth();
+
+  useEffect(() => {
+    (async () => {
+      const res = await api.getMe();
+      if (res.success && res.data) {
+        const u = res.data.user;
+        setUser(u);
+        setName(u.name ?? '');
+        setGender(u.gender ?? null);
+        setAgeRange(u.age ? ageToRange(u.age) : null);
+        setCity(u.city ?? '');
+        setBio(u.bio ?? '');
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  async function handleSave() {
+    if (!name.trim()) { Alert.alert('Required', 'Please enter your name.'); return; }
+    if (!gender) { Alert.alert('Required', 'Please select your gender.'); return; }
+    if (!ageRange) { Alert.alert('Required', 'Please select your age range.'); return; }
+
+    setSaving(true);
+    const res = await api.saveProfile(name.trim(), gender, AGE_MAP[ageRange], city.trim(), bio.trim());
+    setSaving(false);
+
+    if (res.success) {
+      Alert.alert('Saved', 'Your profile has been updated.');
+    } else {
+      Alert.alert('Error', res.message ?? 'Failed to update profile');
+    }
+  }
+
+  if (loading) {
+    return (
+      <View style={styles.loaderWrap}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  const initials = user?.name?.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) ?? '?';
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <StatusBar barStyle="light-content" />
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>My Profile</Text>
+        </View>
+
+        {/* Avatar section */}
+        <View style={styles.avatarSection}>
+          <View style={styles.avatarCircle}>
+            <Text style={styles.avatarText}>{initials}</Text>
+          </View>
+          <Text style={styles.avatarName}>{user?.name || 'Your Name'}</Text>
+          <Text style={styles.avatarMobile}>+91 {user?.mobile}</Text>
+        </View>
+
+        {/* Form */}
+        <View style={styles.form}>
+
+          <Text style={styles.label}>Full Name</Text>
+          <TextInput
+            style={[styles.input, nameFocused && styles.inputFocused]}
+            placeholder="Enter your full name"
+            placeholderTextColor={Colors.textMuted}
+            value={name}
+            onChangeText={setName}
+            onFocus={() => setNameFocused(true)}
+            onBlur={() => setNameFocused(false)}
+          />
+
+          <Text style={styles.label}>I am a</Text>
+          <View style={styles.genderRow}>
+            {([
+              { value: 'male', label: 'Man', symbol: 'M' },
+              { value: 'female', label: 'Woman', symbol: 'F' },
+            ] as { value: Gender; label: string; symbol: string }[]).map((g) => (
+              <TouchableOpacity
+                key={g.value}
+                style={[styles.genderCard, gender === g.value && styles.genderCardActive]}
+                onPress={() => setGender(g.value)}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.genderSymbolWrap, gender === g.value && styles.genderSymbolWrapActive]}>
+                  <Text style={[styles.genderSymbol, gender === g.value && styles.genderSymbolActive]}>
+                    {g.symbol}
+                  </Text>
+                </View>
+                <Text style={[styles.genderLabel, gender === g.value && styles.genderLabelActive]}>
+                  {g.label}
+                </Text>
+                {gender === g.value && (
+                  <View style={styles.genderCheck}>
+                    <Text style={styles.genderCheckText}>✓</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.label}>Age Range</Text>
+          <View style={styles.ageGrid}>
+            {AGE_OPTIONS.map((opt) => (
+              <TouchableOpacity
+                key={opt}
+                style={[styles.ageChip, ageRange === opt && styles.ageChipActive]}
+                onPress={() => setAgeRange(opt)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.ageChipText, ageRange === opt && styles.ageChipTextActive]}>
+                  {opt}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.label}>City <Text style={styles.optionalTag}>(Optional)</Text></Text>
+          <TextInput
+            style={[styles.input, cityFocused && styles.inputFocused]}
+            placeholder="e.g. Chennai, Mumbai"
+            placeholderTextColor={Colors.textMuted}
+            value={city}
+            onChangeText={setCity}
+            onFocus={() => setCityFocused(true)}
+            onBlur={() => setCityFocused(false)}
+          />
+
+          <Text style={styles.label}>About Me <Text style={styles.optionalTag}>(Optional)</Text></Text>
+          <TextInput
+            style={[styles.input, styles.inputMulti, bioFocused && styles.inputFocused]}
+            placeholder="A short intro about yourself…"
+            placeholderTextColor={Colors.textMuted}
+            value={bio}
+            onChangeText={(v) => setBio(v.slice(0, 200))}
+            onFocus={() => setBioFocused(true)}
+            onBlur={() => setBioFocused(false)}
+            multiline
+            numberOfLines={3}
+          />
+          <Text style={styles.charCount}>{bio.length}/200</Text>
+
+          {/* Info row */}
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>Mobile: +91 {user?.mobile}</Text>
+            <Text style={styles.infoNote}>Mobile number cannot be changed.</Text>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+            onPress={handleSave}
+            disabled={saving}
+            activeOpacity={0.85}
+          >
+            {saving
+              ? <ActivityIndicator color="#fff" size="small" />
+              : <Text style={styles.saveBtnText}>Save Changes</Text>
+            }
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.logoutBtn} onPress={() => {
+            Alert.alert('Logout', 'Are you sure?', [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Logout', style: 'destructive',
+                onPress: async () => {
+                  const { deleteItem } = await import('../../utils/storage');
+                  await deleteItem('token');
+                  setToken(null);
+                  clearAuthUser(null);
+                  router.replace('/(auth)/login');
+                },
+              },
+            ]);
+          }}>
+            <Text style={styles.logoutBtnText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.background },
+  loaderWrap: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  scroll: { flexGrow: 1, paddingBottom: 40 },
+
+  header: {
+    paddingTop: 52, paddingBottom: 14, paddingHorizontal: Spacing.lg,
+    backgroundColor: Colors.primary,
+  },
+  headerTitle: { fontSize: FontSize.xl, fontWeight: FontWeight.bold, color: '#fff' },
+
+  avatarSection: {
+    backgroundColor: Colors.primary, alignItems: 'center',
+    paddingBottom: 32, paddingTop: 8,
+  },
+  avatarCircle: {
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 3, borderColor: 'rgba(255,255,255,0.6)',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 10,
+  },
+  avatarText: { color: '#fff', fontSize: FontSize.xxl, fontWeight: FontWeight.bold },
+  avatarName: { color: '#fff', fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+  avatarMobile: { color: 'rgba(255,255,255,0.75)', fontSize: FontSize.sm, marginTop: 2 },
+
+  form: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    marginTop: -20, padding: Spacing.xl,
+  },
+
+  label: {
+    fontSize: FontSize.xs, fontWeight: FontWeight.semibold,
+    color: Colors.textSecondary, marginBottom: Spacing.sm,
+    marginTop: Spacing.md, textTransform: 'uppercase', letterSpacing: 0.5,
+  },
+  optionalTag: { color: Colors.textMuted, fontWeight: FontWeight.medium, textTransform: 'none' as const },
+  input: {
+    backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.border,
+    borderRadius: Radius.md, padding: 15,
+    fontSize: FontSize.md, color: Colors.textPrimary, ...Shadow.sm,
+  },
+  inputMulti: { minHeight: 90, textAlignVertical: 'top' as const },
+  inputFocused: { borderColor: Colors.primary },
+  charCount: { fontSize: FontSize.xs, color: Colors.textMuted, textAlign: 'right' as const, marginTop: 4 },
+
+  genderRow: { flexDirection: 'row', gap: 12 },
+  genderCard: {
+    flex: 1, backgroundColor: Colors.surface, borderRadius: Radius.lg,
+    padding: Spacing.lg, alignItems: 'center', borderWidth: 2, borderColor: Colors.border, ...Shadow.sm,
+  },
+  genderCardActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
+  genderSymbolWrap: {
+    width: 48, height: 48, borderRadius: 24,
+    backgroundColor: Colors.surfaceAlt,
+    justifyContent: 'center', alignItems: 'center', marginBottom: Spacing.sm,
+  },
+  genderSymbolWrapActive: { backgroundColor: Colors.primary },
+  genderSymbol: { fontSize: FontSize.lg, fontWeight: FontWeight.extrabold, color: Colors.textMuted },
+  genderSymbolActive: { color: '#fff' },
+  genderLabel: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
+  genderLabelActive: { color: Colors.primary },
+  genderCheck: {
+    position: 'absolute', top: 10, right: 10,
+    width: 20, height: 20, borderRadius: 10,
+    backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center',
+  },
+  genderCheckText: { color: '#fff', fontSize: 11, fontWeight: FontWeight.bold },
+
+  ageGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  ageChip: {
+    paddingHorizontal: 18, paddingVertical: 10,
+    borderRadius: Radius.full, borderWidth: 1.5, borderColor: Colors.border,
+    backgroundColor: Colors.surface, ...Shadow.sm,
+  },
+  ageChipActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
+  ageChipText: { fontSize: FontSize.sm, fontWeight: FontWeight.semibold, color: Colors.textSecondary },
+  ageChipTextActive: { color: Colors.primary },
+
+  infoBox: {
+    backgroundColor: Colors.surfaceAlt, borderRadius: Radius.md,
+    padding: Spacing.md, marginTop: Spacing.lg,
+  },
+  infoText: { fontSize: FontSize.sm, color: Colors.textSecondary, fontWeight: FontWeight.medium },
+  infoNote: { fontSize: FontSize.xs, color: Colors.textMuted, marginTop: 4 },
+
+  saveBtn: {
+    backgroundColor: Colors.primary, borderRadius: Radius.md,
+    paddingVertical: 16, alignItems: 'center', marginTop: Spacing.xl, ...Shadow.lg,
+  },
+  saveBtnDisabled: { opacity: 0.6 },
+  saveBtnText: { color: '#fff', fontSize: FontSize.lg, fontWeight: FontWeight.bold },
+
+  logoutBtn: {
+    borderWidth: 1.5, borderColor: Colors.error, borderRadius: Radius.md,
+    paddingVertical: 14, alignItems: 'center', marginTop: Spacing.md,
+  },
+  logoutBtnText: { color: Colors.error, fontSize: FontSize.md, fontWeight: FontWeight.semibold },
+});
